@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+
+{% load staticfiles %} <!-- Informs Djangos's template engin that we will be using static files within the template. -->
+
+
+
+<html>
+<head>
+    <title>Rango</title>
+</head>
+<body>
+    <h1>Rango says...</h1>
+    <div>
+        hey there partner! <br />
+        <strong>{{ boldmessage }}</strong><br />
+    </div>
+    <div>
+        <a href="/rango/about/">About</a><br />
+        <img src="{% static 'images/tdespair.png' %}" alt="Picture of tdespair" />
+    </div>
+</body>
+</html>
