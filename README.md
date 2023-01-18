@@ -1,2 +1,4 @@
 # tango_with_django_project
-django stuff bruh
+Django web app for WAD2
+
+
