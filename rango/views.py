@@ -16,6 +16,30 @@ from django.urls import reverse
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
+from datetime import datetime
+
+
+# Helper function
+
+def get_server_side_cookie(request, cookie, default_val=None):
+    val = request.session.get(cookie)
+    if not val:
+        val = default_val
+    return val
+
+
+def visitor_cookie_handler(request):
+    visits = int(get_server_side_cookie(request, 'visits', '1'))
+    last_visit_cookie = get_server_side_cookie(request, 'last_visit', str(datetime.now()))
+    last_visit_time = datetime.strptime(last_visit_cookie[:-7], '%Y-%m-%d %H:%M:%S')
+
+    if (datetime.now() - last_visit_time).days > 0:
+        visits = visits + 1
+        request.session['last_visit'] = str(datetime.now())
+    else:
+        request.session['last_visit'] = last_visit_cookie
+
+    request.session['visits'] = visits
 
 
 # Create your views here.
@@ -34,14 +58,20 @@ def index(request):
     context_dict['boldmessage'] = 'Crunchy, creamy, cookie, candy, cupcake!'
     context_dict['categories'] = category_list
     context_dict['pages'] = page_list
-    # Render the response and send it back!
-    return render(request, 'rango/index.html', context=context_dict)
+
+    visitor_cookie_handler(request)
+
+    response = render(request, 'rango/index.html', context=context_dict)
+    return response
 
 
 def about(request):
     # link = '/rango/'
     # return HttpResponse("Rango says here is the about page. " + format_html('<a href="{}">Index</a>', link))
     context_dict = {'boldmessage': 'This tutorial has been put together by Lewis Foskett'}
+
+    visitor_cookie_handler(request)
+    context_dict['visits'] = request.session['visits']
     return render(request, 'rango/about.html', context=context_dict)
 
 
@@ -73,6 +103,8 @@ def show_category(request, category_name_slug):
 
     # Go render the response and return it to the client.
     return render(request, 'rango/category.html', context=context_dict)
+
+
 @login_required
 def add_category(request):
     form = CategoryForm()
@@ -80,10 +112,10 @@ def add_category(request):
     # A HTTP POST?
     if request.method == 'POST':
         form = CategoryForm(request.POST)
-        
+
         # Have we been provided with a valid form?
         if form.is_valid():
-            #Save the new category to the databse.
+            # Save the new category to the databse.
             form.save(commit=True)
             # Now that the category is saved, we could confirm this.
             # For now, just redirect the user back to the index view.
@@ -96,6 +128,7 @@ def add_category(request):
     # Will handle the bad form, new form, or no form supplied cases.
     # Render the form with error messages (if any).
     return render(request, 'rango/add_category.html', {'form': form})
+
 
 @login_required
 def add_page(request, category_name_slug):
@@ -177,9 +210,11 @@ def user_login(request):
     else:
         return render(request, 'rango/login.html')
 
+
 @login_required
 def restricted(request):
     return render(request, 'rango/restricted.html')
+
 
 @login_required
 def user_logout(request):

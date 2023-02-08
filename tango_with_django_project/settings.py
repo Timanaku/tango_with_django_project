@@ -124,6 +124,8 @@ USE_TZ = True
 
 LOGIN_URL = 'rango:login'
 
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
 
 
 # Static files (CSS, JavaScript, Images)
